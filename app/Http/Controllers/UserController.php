@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Role;
-use Illuminate\Http\Request;
+use App\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
-class RoleController extends Controller {
+class UserController extends Controller {
     private $rules = [
-        'name' => 'required|unique:Role|max:50',
+        'username' => 'required|unique:User|string|max:100',
+        'email' => 'required|email|unique:User',
+        'password' => 'required',
+        'roleFk' => 'required|exists:Role,id'
     ];
 
     /**
@@ -17,8 +20,8 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function index() {
-        $roles = Role::all();
-        return response()->json($roles, 200);
+        $users = User::all();
+        return response()->json($users, 200);
     }
 
     /**
@@ -35,7 +38,7 @@ class RoleController extends Controller {
             return response()->json($validator->errors(), 409);
         }
 
-        $role = Role::create($data);
+        $role = User::create($data);
         return response()->json($role, 201);
     }
 
@@ -46,25 +49,24 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id) {
-        $role = Role::all()->where("id", $id)->first();
-
+        $user = User::all()->where("id", $id)->first();
         if(!empty($role)) {
-            return response()->json($role, 200);
+            return response()->json($user, 200);
         }
-        return response()->json($role, 404);
+        return response()->json($user, 404);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param Role $role
+     * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, int $id) {
-        $role = Role::all()->where($id)->first();
+        $user = User::all()->where("id", $id)->first();
 
-        if(!empty($role)){
+        if(!empty($user)) {
             $data = $request->input();
             $validator = Validator::make($data, $this->rules);
 
@@ -72,11 +74,11 @@ class RoleController extends Controller {
                 return response()->json($validator->errors(), 409);
             }
 
-            $role->fill($data);
-            $role->save();
-            return response()->json($role, 200);
+            $user->fill($data);
+            $user->save();
+            return response()->json($user, 200);
         }
-        return response()->json($role, 404);
+        return response()->json($user, 404);
     }
 
     /**
@@ -85,13 +87,13 @@ class RoleController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id) {
-        $role = Role::all()->where("id", $id)->first();
+    public function destroy(int $id) {
+        $user = User::all()->where("id", $id)->first();
 
-        if(!empty($role)) {
-            $role->delete();
-            return response()->json($role, 200);
+        if(!empty($user)) {
+            $user->delete();
+            return response()->json($user, 200);
         }
-        return response()->json($role, 404);
+        return response()->json($user, 404);
     }
 }
