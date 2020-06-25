@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
+use App\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
-class UserController extends Controller {
+class PermissionController extends Controller {
     private $rules = [
-        'username' => 'required|unique:User|string|max:100',
-        'email' => 'required|email|unique:User',
-        'password' => 'required',
-        'roleFk' => 'required|exists:Role,id'
+        'name' => 'required|string|max:50',
+        'description' => 'required|string'
     ];
 
     /**
@@ -19,7 +18,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function index() {
-        return $this->getAll(User::class);
+        return $this->getAll(Permission::class);
     }
 
     /**
@@ -29,7 +28,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request) {
-        return $this->validateAndAdd($request, User::class, $this->rules);
+        return $this->validateAndAdd($request, Permission::class, $this->rules);
     }
 
     /**
@@ -39,7 +38,7 @@ class UserController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id) {
-        return $this->getById(User::class, $id);
+        return $this->getById(Permission::class, $id);
     }
 
     /**
@@ -49,8 +48,9 @@ class UserController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, int $id) {
-        return $this->validateAndUpdate($request, User::class, $id, $this->rules);
+    public function update(Request $request, $id) {
+        $permission = Permission::all()->where("id", $id)->first();
+        return $this->validateAndUpdate($request, $permission, $id, $this->rules);
     }
 
     /**
@@ -59,7 +59,7 @@ class UserController extends Controller {
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(int $id) {
-        return $this->removeResource(User::class, $id);
+    public function destroy($id) {
+        return $this->removeResource(Permission::class, $id);
     }
 }

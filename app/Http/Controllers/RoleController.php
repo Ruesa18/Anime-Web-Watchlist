@@ -17,8 +17,7 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function index() {
-        $roles = Role::all();
-        return response()->json($roles, 200);
+        return $this->getAll(Role::class);
     }
 
     /**
@@ -28,15 +27,7 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request) {
-        $data = $request->input();
-        $validator = Validator::make($data, $this->rules);
-
-        if($validator->fails()) {
-            return response()->json($validator->errors(), 409);
-        }
-
-        $role = Role::create($data);
-        return response()->json($role, 201);
+        return $this->validateAndAdd($request, Role::class, $this->rules);
     }
 
     /**
@@ -46,12 +37,7 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id) {
-        $role = Role::all()->where("id", $id)->first();
-
-        if(!empty($role)) {
-            return response()->json($role, 200);
-        }
-        return response()->json($role, 404);
+        return $this->getById(Role::class, $id);
     }
 
     /**
@@ -62,21 +48,7 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, int $id) {
-        $role = Role::all()->where($id)->first();
-
-        if(!empty($role)){
-            $data = $request->input();
-            $validator = Validator::make($data, $this->rules);
-
-            if($validator->fails()) {
-                return response()->json($validator->errors(), 409);
-            }
-
-            $role->fill($data);
-            $role->save();
-            return response()->json($role, 200);
-        }
-        return response()->json($role, 404);
+        return $this->validateAndUpdate($request, Role::class, $id, $this->rules);
     }
 
     /**
@@ -86,12 +58,6 @@ class RoleController extends Controller {
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id) {
-        $role = Role::all()->where("id", $id)->first();
-
-        if(!empty($role)) {
-            $role->delete();
-            return response()->json($role, 200);
-        }
-        return response()->json($role, 404);
+        return $this->removeResource(Role::class, $id);
     }
 }
