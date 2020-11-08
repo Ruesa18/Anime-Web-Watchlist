@@ -47,16 +47,27 @@ class Controller extends BaseController {
         return response()->json(new \stdClass(), 500);
     }
 
-    protected function validateAndUpdate(Request $request, $model, int $id, array $rules): JsonResponse {
+    protected function validateAndUpdate(Request $request, $model, int $id, array $rules, bool $uniqueWithoutSelf = false): JsonResponse {
+        foreach($rules as $key=>$rule) {
+            $rules[$key] .= ",$key," . $model::all()->where("id", $id)->first()->$key;
+        }
+        //TODO: Fix problem with unique on update.
+
         if($this->validateModel($model)) {
             $resource = $model::all()->where("id", $id)->first();
             if(!empty($model)) {
                 $data = $request->input();
-                $validator = Validator::make($data, $rules);
 
-                if($validator->fails()) {
-                    return response()->json($validator->errors(), 409);
+                if(!$uniqueWithoutSelf) {
+                    $validator = Validator::make($data, $rules);
+
+                    if($validator->fails()) {
+                        return response()->json($validator->errors(), 409);
+                    }
+                }else if(!$this->isUniqueExclusiveSelf($model, $id, $data)['state']) {
+                    return response()->json($this->isUniqueExclusiveSelf($model, $id, $data)['errors'], 409);
                 }
+
 
                 $resource->fill($data);
                 $resource->save();
@@ -65,6 +76,22 @@ class Controller extends BaseController {
             return response()->json($resource, 404);
         }
         return response()->json(new \stdClass(), 500);
+    }
+
+    private function isUniqueExclusiveSelf($model, $id, $input) {
+        $msg = array();
+        $state = true;
+
+        foreach($input as $key => $value) {
+            $data = $model::where("id", "!=", $id)->where($key, "LIKE", $value)->first();
+
+            if($data) {
+                $state = false;
+                $msg[$key] = array("The $key has already been taken.");
+            }
+        }
+
+        return array("state" => $state, "errors" => $msg);
     }
 
     protected function removeResource($model, int $id): JsonResponse {
