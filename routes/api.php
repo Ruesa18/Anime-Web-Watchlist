@@ -21,3 +21,4 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource('role', 'RoleController');
 Route::apiResource('user', 'UserController');
 Route::apiResource('permission', 'PermissionController');
+Route::apiResource('country', 'CountryController');
